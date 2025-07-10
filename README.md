@@ -1,4 +1,5 @@
-# Real-Time Audio Equalizer (Python)
+![Equalizer](EQ.png)
+# Real-Time Audio Equalizer
 
 A simple real-time audio equalizer written in Python that processes audio input from your microphone and outputs the equalized sound to your speakers. It allows you to adjust bass, mid, and treble bands live through a GUI with sliders.
 
