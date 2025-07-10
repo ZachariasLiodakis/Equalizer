@@ -1,8 +1,9 @@
 import sounddevice as sd
 from .processor import Equalizer
+import numpy as np
 
 class AudioStream:
-    def __init__(self, fs=44100, blocksize=2048):
+    def __init__(self, fs=44100, blocksize=4096):
         self.fs = fs
         self.blocksize = blocksize
         self.equalizer = Equalizer(fs=self.fs)
@@ -10,14 +11,14 @@ class AudioStream:
         self.stream = sd.Stream(
             samplerate=self.fs,
             blocksize=self.blocksize,
-            channels=1,  # mono για αρχή
+            channels=2,  # stereo
             dtype='float32',
             callback=self.callback
         )
 
     def set_gain(self, band, gain):
         """
-        Ενημερώνει το gain στο equalizer (π.χ. από GUI).
+        Update the gain in the equalizer (e.g. from the GUI).
         """
         self.equalizer.update_gain(band, gain)
 
@@ -28,9 +29,15 @@ class AudioStream:
         if status:
             print("[AudioStream] Warning:", status)
 
-        input_signal = indata[:, 0]  # mono
-        output_signal = self.equalizer.process(input_signal)
-        outdata[:, 0] = output_signal
+        # Create output buffer with same shape as input
+        output_signal = np.zeros_like(indata)
+
+        # Process each channel separately
+        for ch in range(indata.shape[1]):
+            output_signal[:, ch] = self.equalizer.process(indata[:, ch])
+
+        # Write processed audio to output buffer
+        outdata[:] = output_signal
 
     def start(self):
         print("🔊 Starting audio stream...")
